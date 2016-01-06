@@ -23,16 +23,22 @@ var GitHubApi = require('github@0.2.4'),
 
 module.exports = function(context, callback) {
   var token = context.data.GITHUB_API_TOKEN,
-    enforceLabels = decodeURIComponent(context.data.enforce),
-    preventLabel = decodeURIComponent(context.data.prevent),
+    enforceLabels = context.data.enforce,
+    preventLabel = context.data.prevent,
+    defaultLabel = context.data.default,
+    overrideLabel = context.data.override,
     payload = context.data;
 
   if (context.data.prevent) {
-    checkLabels.preventLabel = context.data.prevent.toLowerCase();
+    checkLabels.preventLabel = preventLabel.toLowerCase();
   }
 
   if (context.data.default) {
-    checkLabels.defaultLabel = context.data.default.toLowerCase();
+    checkLabels.defaultLabel = defaultLabel.toLowerCase();
+  }
+
+  if (context.data.override) {
+    checkLabels.overrideLabel = overrideLabel.toLowerCase();
   }
 
   if (!token) {
