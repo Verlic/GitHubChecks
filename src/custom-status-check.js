@@ -1,6 +1,5 @@
 var GitHubApi = require('github@0.2.4'),
   Promise = require('promise@7.0.1'),
-  crypto = require('crypto'),
   checkLabels = {
     enforceLabels: ['feature', 'bug fixing', 'product refactor', 'code refactor'],
     overrideLabel: 'critical'
@@ -24,12 +23,17 @@ var GitHubApi = require('github@0.2.4'),
 
 module.exports = function(context, callback) {
   var token = context.data.GITHUB_API_TOKEN,
-    enforceLabels = context.data.enforce,
-    preventLabel = context.data.prevent,
+    enforceLabels = decodeURIComponent(context.data.enforce),
+    preventLabel = decodeURIComponent(context.data.prevent),
     payload = context.data;
 
-  checkLabels.preventLabel = context.data.prevent;
-  checkLabels.defaultLabel = context.data.default;
+  if (context.data.prevent) {
+    checkLabels.preventLabel = context.data.prevent.toLowerCase();
+  }
+
+  if (context.data.default) {
+    checkLabels.defaultLabel = context.data.default.toLowerCase();
+  }
 
   if (!token) {
     return callback('Invalid token. Please verify that the secret is correctly configured.');
@@ -45,6 +49,7 @@ module.exports = function(context, callback) {
   }
 
   if (enforceLabels) {
+    enforceLabels = enforceLabels.toLowerCase();
     enforceLabels = enforceLabels.split(',').map(function(label) {
       return label.trim();
     });
@@ -137,6 +142,7 @@ function checkLabelStatus(payload, checkLabels, callback) {
           return checkLabels.enforceLabels.indexOf(label.name.trim().toLowerCase()) !== -1;
         }).length > 0;
 
+      console.log('PR Labels', labels);
       if (mustOverride) {
         console.log('Override label found. Force check success.');
         status.state = 'success';
